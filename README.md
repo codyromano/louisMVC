@@ -85,7 +85,7 @@ To demonstrate the framework's data binding feature, let's create a simple joke 
 	<p data-model="joke"></p>
 </script>
 ```
-Below your HTML, add the following JavaScript: 
+After your HTML, add the following JavaScript: 
   ```javascript
   var jokeMVC = new LouisMVC({
   	// Where the template should be rendered 

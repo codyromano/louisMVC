@@ -1,7 +1,7 @@
 # LouisMVC
 ![](http://www.splitsville.com/wp-content/uploads/2014/06/louis-ck-oh-my-god.jpg)
 
-LouisMVC is a minimal MVC framework inspired by Backbone, Angular and, of course, Louis C.K. The framework has to [go to space](https://www.youtube.com/watch?v=KpUNA2nutbk#t=76). Will you give it a second to get back from space?
+LouisMVC is a super-lightweight MVC framework inspired by Backbone, Angular and, of course, Louis C.K. It has the one-way data binding of Angular and the events of Backbone, but it checks in at about 180 lines of plain JavaScript...The framework has to [go to space](https://www.youtube.com/watch?v=KpUNA2nutbk#t=76). Will you give it a second to get back from space?
 
 ## Use LouisMVC if...
 

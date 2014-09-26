@@ -1,18 +1,21 @@
 /** 
 * @author Cody Romano 
-* @copyright 2014
 */
 (function () {
 	'use strict';
 
-	// General helper functions 
-	var Util = Util || {}; 
+	var Lou = window.Lou = {}, Util = {}; // Core classes and utilities	
 
-	// This is a general method for rate-limiting.
-	// LouisMVC uses it to manage performance-intensive DOM manipulation.  
+	// A general method for rate-limiting any process. Lou.MVC uses this 
+	// to schedule performance-intensive DOM manipulation  
 	Util.rateLimit = (function () {
 		var processes = {}; 
 
+		/** 
+		* @param {String} A unique identifier describing a group of processes.
+		* @param {Function} A callback to be executed in a queue. 
+		* @param {Integer} Milliseconds that must pass between function calls.
+		*/
 		return function (pID, fn, rateLimit) {
 			var process = processes[pID]; 
 
@@ -32,8 +35,8 @@
 
 					if (!process.time || nowTime - process.time >= rateLimit) {
 						process.time = nowTime; 
-						process.stack[0]();
-						process.stack.slice(0,1);  
+						process.stack[0](); 
+						process.stack.slice(0,1); // Run then remove callback
 					} else {
 						setTimeout(pollingCycle, 100); 
 					}
@@ -42,7 +45,12 @@
 		};
 	})(); 
 
-	// Like forEach, but for objects
+	Util.getUniqueID = (function () {
+		var counter = 0; 
+		return function () { return 'id' + (++counter); }
+	})();
+
+	// Helpers for iterating through objects and node lists
 	Util.forEachInObj = function (obj, doForEach) {
 		for (var key in obj) { doForEach(key, obj[key]); }
 	};
@@ -50,25 +58,72 @@
 	Util.forEachNode = function (selector, doForEach) {
 		var nodeList = document.querySelectorAll(selector); 
 		var nodeArray = Array.prototype.slice.call(nodeList); 
-		nodeArray.forEach(doForEach); 
+		return nodeArray.map(doForEach); 
 	};
 
 	// Call a function if it exists
-	Util.maybeCall = function (fn) {
-		if (typeof fn == 'function') { fn(); }
+	Util.maybeCall = function (fn) { if (typeof fn == 'function') { fn(); } };
+
+	Util.isArray = function (data) {
+		return typeof data == 'object' && 'push' in data; 
 	};
 
-	function LouisMVC (params) {
-		'use strict';
+	Lou.Dispatch = (function () {
+		var events = {}; 
+		return {
+			broadcast: function (eventName, params) {
+				if (Util.isArray(events[eventName])) {
+					events[eventName].forEach(function (fn) { fn(params); });
+				}
+			},
+			listen: function (eventName, callback) {
+				if (!Util.isArray(events[eventName])) { events[eventName] = [];}
+				events[eventName].push(callback);
+			}
+		};
+	})();
 
-		if (!this.constructor instanceof LouisMVC) {
-			return new LouisMVC(params); 
-		}
+	Lou.Router = (function () {
+		var _self = this, pub = {};
+
+		pub.getHash = function () { return location.hash.replace('#',''); };
+		pub.goToRoute = function (route) { window.location.hash = route; };
+
+		pub.getRoute = function () {
+			var hash = pub.getHash(); 
+			return hash.length > 0 ? hash : 'defaultView';
+		};
+
+		function handleRouteChange () {
+			var route = pub.getRoute(); 
+			if (route in Lou) { Lou[route].render(); }
+		};
+
+		pub.init = function () {
+			handleRouteChange();
+			window.addEventListener('hashchange', handleRouteChange); 
+		};
+
+		return pub;
+	})();
+
+	Lou.MVC = function (params) {
+		if (!this.constructor instanceof Lou.MVC) { return new Lou.MVC(params); }
 
 		var _self = this; 
 
 		// A plain JavaScript object 
-		var model = params.model; 
+		var model = params.model;
+
+		// Only change _self.el.innerHTML when the template is first
+		// rendered. This flag helps us keep track of that
+		var didInitialRender = false; 
+
+		// Generate an immutable, unique ID
+		Object.defineProperty(_self, 'id', {
+			value: Util.getUniqueID(), 
+			writable: false
+		});
 
 		this.renderRateLimit = 250; 
 
@@ -77,8 +132,8 @@
 
 		// Keep our actual model in a closure and restrict
 		// access using universal getter and setter methods
-		this.model = {
-			set: function (key, value) {
+		_self.model = {
+			set: function (key, value) { 
 				model[key] = value;
 				if (params.dataBinding != false) {
 					Util.rateLimit('SimpleMVCRender', _self.render, _self.renderRateLimit);
@@ -89,20 +144,9 @@
 			}
 		};
 
-		var templateHasBeenRendered = (function () {
-			var firstRender = true; 
-			return function () {
-				if (firstRender) {
-					firstRender = false; 
-					return false; 
-				}
-				return true; 
-			};
-		})();
-
 		// An array of parsed event directives. Each directive 
 		// consists of an eventType, a selector and a callback function
-		this.events = (function () {
+		_self.events = (function () {
 			var parsedEvents = []; 
 			if (typeof params.events != 'object') { return parsedEvents; }
 
@@ -127,22 +171,21 @@
 		})();
 
 		// A string consisting of HTML
-		this.template = params.template;
+		_self.template = params.template;
 
 		// Optional logic to be executed after each render
-		this.afterRender = null; 
+		_self.afterRender = null; 
 
 		if (typeof params.afterRender == 'function') {
-			this.afterRender = params.afterRender.bind(this); 
+			_self.afterRender = params.afterRender.bind(_self); 
 		}
 
 		// Map user-provided events to user-provided functions
-		this.toggleEventListeners = function (setting) {
-			var _self = this; 
+		_self.toggleEventListeners = function (setting) {
 			var listenMethod = setting ? 'addEventListener' : 
 				'removeEventListener';
 
-			this.events.forEach(function (eventInfo) {
+			_self.events.forEach(function (eventInfo) {
 				var selectorEl = document.querySelector(eventInfo.selector);
 
 				// Pass the DOM element to the function 
@@ -155,12 +198,15 @@
 			});
 		};
 
-		this.render = function () {
-			var template = this.template;
+		_self.render = function () {
+			Lou.Dispatch.broadcast('renderMVC', {mvcID: _self.id}); 
+
+			var template = _self.template;
 			var elems; 
 
-			if (!templateHasBeenRendered()) {
-				this.el.innerHTML = template; 
+			if (!didInitialRender) {
+				_self.el.innerHTML = template; 
+				didInitialRender = true;
 			}
 
 			Util.forEachNode('[data-model]', function (node) {
@@ -176,13 +222,20 @@
 				if (node.hasOwnProperty('value')) {
 					node.value = _self.model.get(modelProperty); 
 				}
+				if (node.hasOwnProperty('src')) {
+					node.src = _self.model.get(modelProperty); 
+				}
 			});
 
 			_self.toggleEventListeners(true); 
-			Util.maybeCall(this.afterRender); 
+			Util.maybeCall(_self.afterRender); 
 		};
+
+		Lou.Dispatch.listen('renderMVC', function (params) {
+			// If a template other than this object's template is being rendered, 
+			// we will need to re-insert HTML into the target element
+			if (params.id != _self.id) { didInitialRender = false; }
+		});
 	}
 
-	// Exports 
-	window.LouisMVC = LouisMVC; 
 })(); 

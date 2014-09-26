@@ -1,9 +1,9 @@
-# LouisMVC
+# LouMVC
 ![](http://www.splitsville.com/wp-content/uploads/2014/06/louis-ck-oh-my-god.jpg)
 
-LouisMVC is a minimal MVC framework inspired by Backbone, Angular and, of course, Louis C.K. The framework has to [go to space](https://www.youtube.com/watch?v=KpUNA2nutbk#t=76). Will you give it a second to get back from space?
+LouMVC is a minimal MVC framework inspired by Backbone, Angular and, of course, Louis C.K. The framework has to [go to space](https://www.youtube.com/watch?v=KpUNA2nutbk#t=76). Will you give it a second to get back from space?
 
-## Use LouisMVC if...
+## Use LouMVC if...
 
 * You want to organize a simple front-end project 
 * A full-fledged framework would be too large and/or complex
@@ -15,8 +15,8 @@ LouisMVC is a minimal MVC framework inspired by Backbone, Angular and, of course
 2. Create a new instance of the framework and render some content:
 
   ```javascript
-  var myMVC = new LouisMVC({...settings...}); 
-  myMVC.render(); 
+  Lou.myMVC = new Lou.MVC({...settings...}); 
+  Lou.myMVC.render(); 
   ```
 ## Settings
 
@@ -36,7 +36,11 @@ The following two properties are *optional*:
     dataBinding   | *Boolean*       | When `dataBinding` is `true`, changes to a model will be automatically rendered to the view. This is analogous to one-way binding in Angular. This is optional. When left out, it defaults to `true`.
     afterRender | *Function*  | Additional logic to be executed each time the template is rendered.
 
-## Events
+## URL Routing and Event Dispatching
+
+Lou includes two minimal classes for URL routing and broadcasting messages between MVCs. Documention for these features is coming soon.
+
+## Event Callbacks
 
 The object that you supply for `events` should follow the format `"event selector" : "callback"`. For example: 
 
@@ -55,7 +59,7 @@ You must supply a function to be called for each event. Notice that the relevant
 You can access model data using `this.model.set` and `this.model.get`. These methods are available within the event handler functions that you provide. For example: 
 
 ```javascript
-new LouisMVC({
+new Lou.MVC({
   model: {
     userName: '', 
   },
@@ -87,7 +91,7 @@ To demonstrate the framework's data binding feature, let's create a simple joke 
 ```
 Below your HTML, add the following JavaScript: 
   ```javascript
-  var jokeMVC = new LouisMVC({
+  Lou.jokeMVC = new Lou.MVC({
   	// Where the template should be rendered 
   	el: document.querySelector('main'), 
   

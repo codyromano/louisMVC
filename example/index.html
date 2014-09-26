@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+	<title>LouisMVC Example</title>
+	<link rel="stylesheet" href="css/example.css" type="text/css"/>
+
+</head>
+<body>
+
+<main></main>
+
+<script type="text" id="profile">
+	<img data-model="profile"/>
+	<span data-model="firstName"></span>
+	<span data-model="lastName"></span>
+
+	<section id="stats">
+		<label>Age </label><span data-model="age"></span>
+		<label>Job</label><span data-model="job"></span>
+		<label>Outlook</label><span data-model="outlook"></span>
+	</section>
+
+	<footer>
+		<a href="#hobbies">Hobbies &gt;</a>
+	</footer>
+</script>
+
+<script type="text" id="hobbies">
+	Hobbies include <span data-model="hobby1"></span>
+	and <span data-model="hobby2"></span>
+
+	<footer> 
+		<a href="#profile">&lt; Profile</a>
+	</footer>
+</script>
+
+
+<script src="../louMVC.js"></script>
+
+<script>
+Lou.profile = new Lou.MVC({
+	el: document.querySelector('main'), 
+	template: document.querySelector('#profile').innerHTML,
+	model: {
+		firstName: "Louis", 
+		lastName: "C.K.",
+		profile: "img/profile.jpg",
+		age: 40,
+		job: "Comedian", 
+		outlook: "Bleak"
+	}
+});
+
+Lou.hobbies = new Lou.MVC({
+	el: document.querySelector('main'), 
+	template: document.querySelector('#hobbies').innerHTML, 
+	model: {
+		hobby1: 'coding', 
+		hobby2: 'watching stand-up comedy'
+	},
+	events: {}
+});
+
+Lou.defaultView = Lou.profile;
+Lou.Router.init(); 
+</script>
+
+</body>
+</html>

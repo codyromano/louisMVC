@@ -1,0 +1,44 @@
+main {
+	font-size: 1.25em;
+	font-family: Helvetica;
+	width: 600px;
+	margin: 0px auto;
+	line-height: 1.5em;
+}
+
+input[type=text] {
+	font-size:1.15em;
+}
+
+img {
+	display: block;
+	margin-bottom: 1em;
+	width: 100%; 
+}
+
+#stats {
+	width: 50%;
+}
+
+#stats * {
+	display: block;
+	float: left;
+}
+
+#stats label {
+	clear: left;
+	font-weight: bold;
+	width: 50%;
+}
+
+footer, section {
+	position: relative;
+	clear: both;
+	margin: 1.5em 0em;
+}
+
+[data-model*='Name'] {
+	font-size: 1.75em;
+	display: inline-block;
+	margin-bottom: 1em;
+}

@@ -7,62 +7,121 @@
 </head>
 <body>
 
-<main></main>
+<!-- Rendered template content will appear in the elements below. -->
+<section id="profile"></section>
+<section id="comicsList"></section>
 
-<script type="text" id="profile">
-	<img data-model="profile"/>
-	<span data-model="firstName"></span>
-	<span data-model="lastName"></span>
-
-	<section id="stats">
-		<label>Age </label><span data-model="age"></span>
-		<label>Job</label><span data-model="job"></span>
-		<label>Outlook</label><span data-model="outlook"></span>
-	</section>
-
-	<footer>
-		<a href="#hobbies">Hobbies &gt;</a>
-	</footer>
+<script id="templateProfile" type="text">
+	<h1>
+		<span data-model="firstName"></span>
+		<span data-model="lastName"></span>
+	</h1>
+	<iframe data-model="youtube" frameborder="0" allowfullscreen></iframe>
+</script>
+<!-- Templates for different page components such as a menu --> 
+<script id="templateComicsList" type="text">
+	<ul>
+		<li><a>Chris Rock</a></li>
+		<li><a>Greg Giraldo</a></li>
+		<li><a>Trevor Noah</a></li>
+	</ul>
 </script>
 
-<script type="text" id="hobbies">
-	Hobbies include <span data-model="hobby1"></span>
-	and <span data-model="hobby2"></span>
-
-	<footer> 
-		<a href="#profile">&lt; Profile</a>
-	</footer>
-</script>
-
-
+<!-- Include the framework --> 
 <script src="../louMVC.js"></script>
 
 <script>
-Lou.profile = new Lou.MVC({
-	el: document.querySelector('main'), 
-	template: document.querySelector('#profile').innerHTML,
-	model: {
-		firstName: "Louis", 
-		lastName: "C.K.",
-		profile: "img/profile.jpg",
-		age: 40,
-		job: "Comedian", 
-		outlook: "Bleak"
+/* This is a simple shortcut for selecting DOM elements. To avoid dependencies, 
+Lou uses plain JavaScript for querying the DOM, but you could jQuery instead. */ 
+function DOM (selector) { return document.querySelector(selector); }
+
+// Start by defining some model data, which we'll pass in to 
+// the simple MVC objects below.
+var comics = {
+	"Greg Giraldo" : {
+		firstName: "Greg", 
+		lastName: "Giraldo", 
+		youtube: "//www.youtube-nocookie.com/embed/iPTowp3e77k?rel=0"
+	},
+
+	"Chris Rock" : {
+		firstName: "Chris", 
+		lastName: "Rock", 
+		youtube: "//www.youtube-nocookie.com/embed/-vSMrnFQyhI?rel=0"
+	},
+
+	"Trevor Noah" : {
+		firstName: "Trevor", 
+		lastName: "Noah", 
+		profile: "img/louis.jpg", 
+		youtube: "//www.youtube-nocookie.com/embed/37Y7CLGGMUo?rel=0"
+	}
+};
+
+Lou.comicsList = new Lou.MVC({
+	// Where the rendered content should appear
+	el: DOM('#comicsList'), 
+
+	// A string of HTML to which model attributes should be passed
+	template: DOM('#templateComicsList').innerHTML, 
+
+	// Models can be left empty if a template has no dynamic info
+	model: {}, 
+
+	// Add event listeners to elements of the template
+	events: {
+		'click a' : 'comicSelected'
+	}, 
+
+	comicSelected: function (a) {
+		/* Broadcast an event saying the comic has been changed. The broadcast
+		method allows other objects to react to changes without being referenced
+		directly. This allows the objects to be more modular and decoupled. */
+		Lou.Dispatch.broadcast('newComicSelected', {comicName: a.text}); 
 	}
 });
 
-Lou.hobbies = new Lou.MVC({
-	el: document.querySelector('main'), 
-	template: document.querySelector('#hobbies').innerHTML, 
-	model: {
-		hobby1: 'coding', 
-		hobby2: 'watching stand-up comedy'
-	},
-	events: {}
+Lou.profile = new Lou.MVC({
+	el: DOM('#profile'), 
+	template: DOM('#templateProfile').innerHTML, 
+	model: comics['Trevor Noah'], 
+	events: {},
+	init: function () {
+		var _self = this; 
+
+		// Provide a callback to be executed when 
+		// 'newComicSelected' changes
+		Lou.Dispatch.listen('newComicSelected', function (params) {
+			var comic = comics[params.comicName];
+			_self.model.set(comic);
+		});
+	}
 });
 
+// Render and display the templates
+Lou.comicsList.render(); 
+Lou.profile.render(); 
+
+/*****  Using the model.set method ****/
+
+// Replace a model with a different model 
+Lou.profile.model.set(comics["Chris Rock"]); 
+
+// Update one property 
+Lou.profile.model.set('email', 'chrisrock@mailinator.com'); 
+
+// Update multiple properties
+Lou.profile.model.set({
+	firstName: 'Chris', 
+	lastName: 'Rock'
+});
+
+// These commands have to do with routing
+// More info coming soon
+/*
 Lou.defaultView = Lou.profile;
 Lou.Router.init(); 
+*/
 </script>
 
 </body>

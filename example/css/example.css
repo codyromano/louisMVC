@@ -1,44 +1,51 @@
-main {
-	font-size: 1.25em;
-	font-family: Helvetica;
-	width: 600px;
-	margin: 0px auto;
-	line-height: 1.5em;
-}
+@import url(http://fonts.googleapis.com/css?family=Vollkorn:400,700);
+body {
+  background: #3f2860;
+  font-family: 'Vollkorn', serif; }
 
-input[type=text] {
-	font-size:1.15em;
-}
+h1 {
+  color: #90c5a9;
+  font-size: 3em;
+  margin: .5em 0; }
 
-img {
-	display: block;
-	margin-bottom: 1em;
-	width: 100%; 
-}
+#profile, #comicsList {
+  display: block;
+  text-align: center; }
 
-#stats {
-	width: 50%;
-}
+iframe {
+  /* width="560" height="315" */
+  max-width: 560px;
+  width: 95%;
+  margin: 0 auto;
+  height: 315px; }
 
-#stats * {
-	display: block;
-	float: left;
-}
+#comicsList * {
+  display: inline-block; }
 
-#stats label {
-	clear: left;
-	font-weight: bold;
-	width: 50%;
-}
-
-footer, section {
-	position: relative;
-	clear: both;
-	margin: 1.5em 0em;
-}
-
-[data-model*='Name'] {
-	font-size: 1.75em;
-	display: inline-block;
-	margin-bottom: 1em;
-}
+#comicsList {
+  position: relative;
+  left: -1.5em; }
+  #comicsList a {
+    display: inline-block;
+    cursor: pointer;
+    background: #fa8b60;
+    width: 10em;
+    padding: 4em 0;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    font-size: 1.35em;
+    margin-left: 1em;
+    margin-bottom: 1em;
+    vertical-align: center;
+    border-radius: 100%;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -ms-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out; }
+  #comicsList a:hover {
+    background: #ef6d3b; }
+  #comicsList li:first-of-type a {
+    margin-left: 0; }

@@ -55,6 +55,11 @@
 		for (var key in obj) { doForEach(key, obj[key]); }
 	};
 
+	Util.isDOMNode = function (data) {
+		return typeof data == 'object' && data != null && 
+			'innerHTML' in data;  
+	};
+
 	Util.forEachNode = function (selector, doForEach) {
 		var nodeList = document.querySelectorAll(selector); 
 		var nodeArray = Array.prototype.slice.call(nodeList); 
@@ -112,8 +117,11 @@
 
 		var _self = this; 
 
-		// A plain JavaScript object 
-		var model = params.model;
+		// Deep clone the model
+		var model = JSON.parse(JSON.stringify(params.model));
+
+		// If the optional user-provided initialization function was called. 
+		var initWasCalled = false; 
 
 		// Only change _self.el.innerHTML when the template is first
 		// rendered. This flag helps us keep track of that
@@ -130,17 +138,61 @@
 		// DOM element where rendered content appears
 		this.el = params.el;
 
+		if (!Util.isDOMNode(this.el)) {
+			throw new TypeError("You didn't provide a valid 'el' attribute. Without this, " + 
+				"Lou can't tell where to render.");
+		}
+
 		// Keep our actual model in a closure and restrict
 		// access using universal getter and setter methods
-		_self.model = {
-			set: function (key, value) { 
-				model[key] = value;
-				if (params.dataBinding != false) {
-					Util.rateLimit('SimpleMVCRender', _self.render, _self.renderRateLimit);
-				} 
-			}, 
-			get: function (key) {
-				return model[key]; 
+		_self.model = {}; 
+
+		_self.model.set = function () { 
+			var key, newValue, object; 
+
+			switch (arguments.length) {
+				// Update multiple properties at once 
+				case 1:
+					if (typeof arguments[0] == 'object') {
+						object = arguments[0];
+						Util.forEachInObj(object, function (key, newValue) {
+							model[key] = newValue; 
+						}); 
+					}
+				break;
+				// Update a single property
+				case 2:
+					key = arguments[0]; 
+					newValue = arguments[1]; 
+					if (typeof key == 'string') { model[newValue] = newValue; }
+				break;
+			}
+
+			// Update the view if the user wants data binding
+			if (params.dataBinding != false) {
+				Util.rateLimit('SimpleMVCRender', _self.render, 
+					_self.renderRateLimit);
+			} 
+		};
+
+		_self.model.get = function () {
+			var args = Array.prototype.slice.call(arguments);
+
+			switch (args.length) {
+				// Return the entire model 
+				case 0: return model; break; 
+
+				// Return one attribute of the model 
+				case 1: return model[args[0]]; break;
+
+				// Return more than one model attribute as an object
+				default:
+					return args.reduce(function (result, modelKey) {
+						if (modelKey in model) { 
+							result[modelKey] = model[modelKey]; 
+						}
+					}, {});
+				break;
 			}
 		};
 
@@ -176,6 +228,9 @@
 		// Optional logic to be executed after each render
 		_self.afterRender = null; 
 
+		// Optional logic to be executed after the first render
+		_self.init = params.init; 
+
 		if (typeof params.afterRender == 'function') {
 			_self.afterRender = params.afterRender.bind(_self); 
 		}
@@ -186,14 +241,15 @@
 				'removeEventListener';
 
 			_self.events.forEach(function (eventInfo) {
-				var selectorEl = document.querySelector(eventInfo.selector);
-
-				// Pass the DOM element to the function 
-				var callback = eventInfo.callback.bind(_self, selectorEl); 
-
 				if (eventInfo.selector) {
-					document.querySelector(eventInfo.selector)
-					[listenMethod](eventInfo.type, callback); 
+					// Add a listener to each node 
+					Util.forEachNode(eventInfo.selector, function (node) {
+						// Pass the DOM element to the function 
+						var callback = eventInfo.callback.bind(_self, node);
+
+						// Add an event listener to the node
+						node[listenMethod](eventInfo.type, callback);
+					});
 				}
 			});
 		};
@@ -227,14 +283,22 @@
 				}
 			});
 
+			// Turn event listeners on 
 			_self.toggleEventListeners(true); 
-			Util.maybeCall(_self.afterRender); 
+
+			// Execute optional logic after each render
+			Util.maybeCall(_self.afterRender);
+
+			if (!initWasCalled && typeof params.init == 'function') {
+				params.init.call(_self);  
+				initWasCalled = true; 
+			} 
 		};
 
 		Lou.Dispatch.listen('renderMVC', function (params) {
 			// If a template other than this object's template is being rendered, 
 			// we will need to re-insert HTML into the target element
-			if (params.id != _self.id) { didInitialRender = false; }
+			if (params.mvcID != _self.id) { didInitialRender = false; }
 		});
 	}
 

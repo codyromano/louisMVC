@@ -1,0 +1,83 @@
+@import url(http://fonts.googleapis.com/css?family=Vollkorn:400,700);
+// http://www.onextrapixel.com/2013/10/25/40-stunning-website-designs-with-great-color-schemes/
+
+$purple: #3F2860;
+$gray1: #90C5A9;
+$gray2: #7A9A95;
+$orange: #EF6D3B;
+$lightOrange: #FA8B60;
+$paper: rgb(239, 238, 228); 
+
+@mixin transition($transition-property, $transition-time, $method) {
+    -webkit-transition: $transition-property $transition-time $method;
+    -moz-transition: $transition-property $transition-time $method;
+    -ms-transition: $transition-property $transition-time $method;
+    -o-transition: $transition-property $transition-time $method;
+    transition: $transition-property $transition-time $method;
+}
+
+@mixin box-sizing($type) {
+	box-sizing: $type;
+	-webkit-box-sizing: $type;
+	-moz-box-sizing: $type;
+	-o-box-sizing: $type;
+}
+
+body {
+	background: $purple;
+	font-family: 'Vollkorn', serif;
+}
+
+h1 {
+	color: $gray1;
+	font-size: 3em;
+	margin: .5em 0;
+}
+
+#profile, #comicsList {
+	display: block;
+	text-align: center; 
+}
+
+iframe {
+	/* width="560" height="315" */
+	max-width: 560px;
+	width: 95%;
+	margin: 0 auto;
+	height: 315px;
+}
+
+#comicsList * {
+	display: inline-block;
+}
+
+#comicsList {
+	position: relative;
+	left: -1.5em;
+
+	a {
+		display: inline-block;
+		cursor: pointer; 
+		background: $lightOrange;
+		width: 10em;
+		padding: 4em 0;
+		@include box-sizing(border-box);
+		font-size: 1.35em;
+
+		margin-left: 1em;
+		margin-bottom: 1em;
+		vertical-align: center;
+		border-radius: 100%;
+
+		@include transition(all, 0.2s, ease-in-out);
+	}
+
+	a:hover {
+		background: $orange;
+
+	}
+
+	li:first-of-type a{
+		margin-left: 0;
+	}
+}
